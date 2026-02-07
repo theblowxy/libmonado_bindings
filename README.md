@@ -13,6 +13,12 @@ These bindings allow you to control and monitor the [Monado](https://monado.free
 - Query device information (battery, brightness, properties)
 - Recenter tracking spaces
 
+## How to install
+
+you can easily install it using pip
+```pip install git+https://github.com/theblowxy/libmonado_bindings.git```
+
+
 ## Quick Start
 
 ```python
