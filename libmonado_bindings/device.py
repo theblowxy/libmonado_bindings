@@ -130,23 +130,14 @@ class Device:
         """
         return self.get_info_string(MndProperty.PropertySerialString)
     
-    def model(self) -> str:
+    def device_name(self) -> str:
         """
-        Get the model name of this device.
+        Get the device name string.
         
         Returns:
-            Device model string
+            Device name string from the property system
         """
-        return self.get_info_string(MndProperty.PropertyModelString)
-    
-    def manufacturer(self) -> str:
-        """
-        Get the manufacturer of this device.
-        
-        Returns:
-            Device manufacturer string
-        """
-        return self.get_info_string(MndProperty.PropertyManufacturerString)
+        return self.get_info_string(MndProperty.PropertyNameString)
     
     def get_info_bool(self, property: MndProperty) -> bool:
         """
@@ -210,49 +201,24 @@ class Device:
     
     # Convenience properties
     @property
-    def is_head_mounted_display(self) -> bool:
-        """Check if this device is a head-mounted display."""
-        return self.get_info_bool(MndProperty.PropertyHeadMountedDisplayBool)
-    
+    def supports_position(self) -> bool:
+        """Check if this device supports position tracking."""
+        return self.get_info_bool(MndProperty.PropertySupportsPositionBool)
+
     @property
-    def is_controller(self) -> bool:
-        """Check if this device is a controller."""
-        return self.get_info_bool(MndProperty.PropertyControllerBool)
-    
-    @property
-    def supports_hand_tracking(self) -> bool:
-        """Check if this device supports hand tracking."""
-        return self.get_info_bool(MndProperty.PropertyHandTrackingBool)
-    
-    @property
-    def supports_eye_tracking(self) -> bool:
-        """Check if this device supports eye tracking."""
-        return self.get_info_bool(MndProperty.PropertyEyeTrackingBool)
-    
-    @property
-    def supports_battery(self) -> bool:
-        """Check if this device has battery support."""
-        return self.get_info_bool(MndProperty.PropertyBatterySupportedBool)
-    
+    def supports_orientation(self) -> bool:
+        """Check if this device supports orientation tracking."""
+        return self.get_info_bool(MndProperty.PropertySupportsOrientationBool)
+
     @property
     def supports_brightness(self) -> bool:
         """Check if this device has brightness control."""
-        return self.get_info_bool(MndProperty.PropertyBrightnessSupportedBool)
-    
+        return self.get_info_bool(MndProperty.PropertySupportsBrightnessBool)
+
     @property
-    def vendor_id(self) -> int:
-        """Get the USB vendor ID of this device."""
-        return self.get_info_u32(MndProperty.PropertyVendorIdU32)
-    
-    @property
-    def product_id(self) -> int:
-        """Get the USB product ID of this device."""
-        return self.get_info_u32(MndProperty.PropertyProductIdU32)
-    
-    @property
-    def display_refresh_rate(self) -> float:
-        """Get the display refresh rate (for HMDs)."""
-        return self.get_info_float(MndProperty.PropertyDisplayRefreshRateFloat)
+    def tracking_origin(self) -> int:
+        """Get the tracking origin ID of this device."""
+        return self.get_info_u32(MndProperty.PropertyTrackingOriginU32)
     
     def __repr__(self) -> str:
         """String representation of the device."""

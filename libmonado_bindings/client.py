@@ -59,19 +59,27 @@ class Client:
     
     def is_primary(self) -> bool:
         """Check if this client is the primary client."""
-        return bool(self.state() & ClientState.ClientPrimary)
-    
+        return bool(self.state() & ClientState.ClientPrimaryApp)
+
     def is_focused(self) -> bool:
         """Check if this client has focus."""
-        return bool(self.state() & ClientState.ClientFocused)
-    
+        return bool(self.state() & ClientState.ClientSessionFocused)
+
     def is_io_active(self) -> bool:
         """Check if IO is active for this client."""
         return bool(self.state() & ClientState.ClientIoActive)
-    
+
     def is_visible(self) -> bool:
         """Check if this client is visible."""
-        return bool(self.state() & ClientState.ClientVisible)
+        return bool(self.state() & ClientState.ClientSessionVisible)
+
+    def is_session_active(self) -> bool:
+        """Check if this client's session is active."""
+        return bool(self.state() & ClientState.ClientSessionActive)
+
+    def is_overlay(self) -> bool:
+        """Check if this client is an overlay."""
+        return bool(self.state() & ClientState.ClientSessionOverlay)
     
     def set_primary(self) -> None:
         """

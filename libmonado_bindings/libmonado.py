@@ -355,16 +355,18 @@ class LibMonado:
         """Check a result code and raise appropriate exception if error."""
         if result == MndResult.Success:
             return
-        
+
         error_messages = {
-            MndResult.ErrorConnectingFailed: "Failed to connect",
             MndResult.ErrorInvalidVersion: "Invalid API version",
             MndResult.ErrorInvalidValue: "Invalid value provided",
-            MndResult.ErrorInvalidClientId: "Invalid client ID",
-            MndResult.ErrorInvalidDeviceId: "Invalid device ID",
+            MndResult.ErrorConnectingFailed: "Failed to connect",
+            MndResult.ErrorOperationFailed: "Operation failed",
+            MndResult.ErrorRecenteringNotSupported: "Recentering not supported",
+            MndResult.ErrorInvalidProperty: "Invalid property",
+            MndResult.ErrorInvalidOperation: "Invalid operation",
             MndResult.ErrorUnsupportedOperation: "Operation not supported",
         }
-        
+
         message = error_messages.get(
             result, f"Unknown error (code {result})"
         )

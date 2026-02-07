@@ -35,8 +35,12 @@ with Monado.auto_connect() as monado:
     # List devices
     for device in monado.devices():
         print(f"Device: {device.name}")
-        if device.supports_battery:
-            batt = device.battery_status()
+        print(f"  Position tracking: {device.supports_position}")
+        print(f"  Orientation tracking: {device.supports_orientation}")
+        
+        # Battery (always available via direct API)
+        batt = device.battery_status()
+        if batt.present:
             print(f"  Battery: {batt.charge:.0%}")
     
     # Get specific device by role
@@ -93,6 +97,8 @@ with Monado.auto_connect() as monado:
     print("\nDevices:")
     for device in monado.devices():
         print(f"  {device.name}")
+        print(f"    Position: {device.supports_position}")
+        print(f"    Orientation: {device.supports_orientation}")
 ```
 
 ### Control client focus
@@ -109,10 +115,9 @@ for client in monado.clients():
 
 ```python
 for device in monado.devices():
-    if device.supports_battery:
-        batt = device.battery_status()
-        if batt.present:
-            print(f"{device.name}: {batt.charge:.0%} ({'⚡' if batt.charging else '🔋'})")
+    batt = device.battery_status()
+    if batt.present:
+        print(f"{device.name}: {batt.charge:.0%} ({'⚡' if batt.charging else '🔋'})")
 ```
 
 ### Recenter VR view
