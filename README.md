@@ -117,7 +117,7 @@ monado.recenter_local_spaces()
 
 ## Documentation
 
-Documentation at github ([text](https://github.com/theblowxy/libmonado_bindings/wiki))
+Documentation at github ([link to doc](https://github.com/theblowxy/libmonado_bindings/wiki))
 
 ## Testing
 
