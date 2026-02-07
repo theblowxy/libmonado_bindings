@@ -117,13 +117,7 @@ monado.recenter_local_spaces()
 
 ## Documentation
 
-See the `documentation/` folder for detailed guides:
-
-- [Setup Guide](documentation/setup.md) - Installation and configuration
-- [Usage Guide](documentation/usage.md) - How to use all features
-- [API Reference](documentation/api_reference.md) - Complete API documentation
-- [Examples](documentation/examples.md) - More code examples
-- [Troubleshooting](documentation/troubleshooting.md) - Common issues
+Documentation at github ([text](https://github.com/theblowxy/libmonado_bindings/wiki))
 
 ## Testing
 
