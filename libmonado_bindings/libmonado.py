@@ -270,40 +270,108 @@ class LibMonado:
         1. LIBMONADO_PATH environment variable
         2. XR_RUNTIME_JSON environment variable
         3. XDG config directories
+        4. Envision build directory (~/.local/share/envision/monado/build/src/xrt/targets/libmonado/libmonado.so)
+        
+        If a version error occurs with one path, it will try other available paths.
         
         Returns:
             Connected LibMonado instance
             
         Raises:
-            MonadoConnectionError: If connection fails
+            MonadoConnectionError: If connection fails or no library found
+            MonadoVersionError: If all found libraries have version mismatches
         """
+        # Check LIBMONADO_PATH first (requires validation)
+        if "LIBMONADO_PATH" in os.environ:
+            path = os.environ["LIBMONADO_PATH"]
+            if os.path.isfile(path):
+                try:
+                    return cls(path)
+                except MonadoVersionError:
+                    pass  # Will try other paths below
+            else:
+                raise MonadoConnectionError(
+                    f"LIBMONADO_PATH points to non-existent file: {path}"
+                )
+        
+        # Get all candidate paths and try them
+        candidate_paths = cls._find_all_library_paths()
+        
+        if not candidate_paths:
+            raise MonadoConnectionError(
+                "Could not find Monado runtime. "
+                "Set LIBMONADO_PATH or XR_RUNTIME_JSON environment variable."
+            )
+        
+        version_errors = []
+        connection_errors = []
+        
+        for lib_path in candidate_paths:
+            try:
+                return cls(lib_path)
+            except MonadoVersionError as e:
+                version_errors.append(f"  - {lib_path}: {e}")
+            except MonadoConnectionError as e:
+                connection_errors.append(f"  - {lib_path}: {e}")
+        
+        # All paths failed - raise comprehensive error
+        error_msg = "Failed to connect to Monado.\n"
+        if version_errors:
+            error_msg += "\nVersion mismatches:\n" + "\n".join(version_errors)
+        if connection_errors:
+            error_msg += "\nConnection failures:\n" + "\n".join(connection_errors)
+        
+        raise MonadoConnectionError(error_msg)
+    
+    @classmethod
+    def find_library_path(cls) -> Optional[str]:
+        """
+        Find the first available path to libmonado.so without loading it.
+        
+        Tries the same search order as auto_connect():
+        1. LIBMONADO_PATH environment variable
+        2. XR_RUNTIME_JSON environment variable
+        3. XDG config directories
+        4. Envision build directory
+        
+        Returns:
+            Path to libmonado.so if found, None otherwise
+        """
+        paths = cls._find_all_library_paths()
+        return paths[0] if paths else None
+    
+    @classmethod
+    def _find_all_library_paths(cls) -> list[str]:
+        """
+        Find all candidate paths to libmonado.so without loading.
+        
+        Returns:
+            List of paths to libmonado.so candidates (may be empty)
+        """
+        candidates = []
+        
         # Try LIBMONADO_PATH first
         if "LIBMONADO_PATH" in os.environ:
             path = os.environ["LIBMONADO_PATH"]
             if os.path.isfile(path):
-                return cls(path)
-            raise MonadoConnectionError(
-                f"LIBMONADO_PATH points to non-existent file: {path}"
-            )
+                candidates.append(path)
         
         # Try XR_RUNTIME_JSON
         if "XR_RUNTIME_JSON" in os.environ:
             runtime_path = Path(os.environ["XR_RUNTIME_JSON"])
             lib_path = cls._resolve_runtime_library(runtime_path)
             if lib_path:
-                return cls(str(lib_path))
+                candidates.append(str(lib_path))
         
         # Try XDG config directories
         xdg_config_home = os.environ.get(
             "XDG_CONFIG_HOME", Path.home() / ".config"
         )
         
-        # Search for active_runtime.json
         search_paths = [
             Path(xdg_config_home) / "openxr" / "1" / "active_runtime.json",
         ]
         
-        # Also check system directories
         for config_dir in ["/etc/xdg", "/usr/local/share", "/usr/share"]:
             search_paths.append(
                 Path(config_dir) / "openxr" / "1" / "active_runtime.json"
@@ -313,12 +381,40 @@ class LibMonado:
             if runtime_path.exists():
                 lib_path = cls._resolve_runtime_library(runtime_path)
                 if lib_path:
-                    return cls(str(lib_path))
+                    candidates.append(str(lib_path))
         
-        raise MonadoConnectionError(
-            "Could not find Monado runtime. "
-            "Set LIBMONADO_PATH or XR_RUNTIME_JSON environment variable."
-        )
+        # Try common system library paths
+        system_lib_paths = [
+            "/usr/lib/libmonado.so",
+            "/usr/local/lib/libmonado.so",
+            "/usr/lib64/libmonado.so",
+        ]
+        for lib_path in system_lib_paths:
+            if os.path.isfile(lib_path):
+                candidates.append(lib_path)
+        
+        # Try Envision directories with glob patterns
+        envision_base = Path.home() / ".local" / "share" / "envision"
+        
+        if envision_base.exists():
+            # Pattern: */xrservice/build/src/xrt/targets/libmonado/libmonado.so
+            for pattern in envision_base.glob("*/xrservice/build/src/xrt/targets/libmonado/libmonado.so"):
+                if pattern.is_file():
+                    candidates.append(str(pattern))
+            
+            # Pattern: prefixes/*/lib/libmonado.so
+            prefixes_dir = envision_base / "prefixes"
+            if prefixes_dir.exists():
+                for pattern in prefixes_dir.glob("*/lib/libmonado.so"):
+                    if pattern.is_file():
+                        candidates.append(str(pattern))
+        
+        # Try legacy Envision build directory (fallback)
+        envision_path = envision_base / "monado" / "build" / "src" / "xrt" / "targets" / "libmonado" / "libmonado.so"
+        if envision_path.exists():
+            candidates.append(str(envision_path))
+        
+        return candidates
     
     @staticmethod
     def _resolve_runtime_library(runtime_json_path: Path) -> Optional[Path]:
