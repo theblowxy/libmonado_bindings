@@ -16,7 +16,7 @@ These bindings allow you to control and monitor the [Monado](https://monado.free
 ## How to install
 
 you can easily install it using pip
-```pip install git+https://github.com/theblowxy/libmonado_bindings.git```
+```pip install git+https://github.com/theblowxy/pylibmonado_bindings.git```
 
 
 ## Quick Start
@@ -128,7 +128,7 @@ monado.recenter_local_spaces()
 
 ## Documentation
 
-Documentation at github ([link to doc](https://github.com/theblowxy/libmonado_bindings/wiki))
+Documentation at github ([link to doc](https://github.com/theblowxy/pylibmonado_bindings/wiki))
 
 ## Testing
 
