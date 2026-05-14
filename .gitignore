@@ -6,3 +6,4 @@ libmonado_values
 space.rs
 sys.rs
 libmonado_bindings.wiki/
+libmonado_bindings.egg-info/

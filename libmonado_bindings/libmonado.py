@@ -8,6 +8,7 @@ For most use cases, use the high-level Monado class instead.
 import ctypes
 import json
 import os
+import signal
 from pathlib import Path
 from typing import Optional
 
@@ -23,7 +24,6 @@ from .types import (
 from .client import Client
 from .device import Device, BatteryStatus
 
-
 class LibMonado:
     """
     Low-level wrapper around libmonado.so using ctypes.
@@ -33,6 +33,7 @@ class LibMonado:
     """
     
     def __init__(self, library_path: str):
+
         """
         Load and initialize libmonado.
         
@@ -42,19 +43,29 @@ class LibMonado:
         Raises:
             MonadoConnectionError: If library loading or connection fails
         """
+
         self._lib = None
         self._root = ctypes.c_void_p(0)
         self._closed = False
-        
+
+        def _timeout_handler(signum, frame):
+            raise MonadoConnectionError(
+                "Failed to load library (timeout) - Monado is probably broken"
+            )
+
+        old_handler = signal.getsignal(signal.SIGALRM)
+        signal.signal(signal.SIGALRM, _timeout_handler)
+
+        signal.setitimer(signal.ITIMER_REAL, 0.4)
+
         try:
             self._lib = ctypes.CDLL(library_path)
-        except OSError as e:
-            raise MonadoConnectionError(f"Failed to load library: {e}")
-        
-        self._setup_function_signatures()
-        self._check_version()
-        self._connect()
-    
+            self._setup_function_signatures()
+            self._check_version()
+            self._connect()
+        finally:
+            signal.setitimer(signal.ITIMER_REAL, 0)
+            signal.signal(signal.SIGALRM, old_handler)
     def _setup_function_signatures(self) -> None:
         """Setup ctypes function signatures for all Monado API functions."""
         lib = self._lib
